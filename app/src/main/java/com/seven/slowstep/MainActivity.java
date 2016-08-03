@@ -36,8 +36,15 @@ public class MainActivity extends AppCompatActivity
         fab.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                Snackbar.make(view, "Replace with your own action", Snackbar.LENGTH_LONG)
-                        .setAction("Action", null).show();
+                Snackbar.make(view, "下载离线地图", Snackbar.LENGTH_LONG)
+                        .setAction("Action", new View.OnClickListener() {
+                            @Override
+                            public void onClick(View v) {
+                                Intent intent;
+                                intent = new Intent(getApplicationContext(),OfflineDemo.class);
+                                startActivity(intent);
+                            }
+                        }).show();
             }
         });
 

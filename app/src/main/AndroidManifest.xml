@@ -53,6 +53,7 @@
             </intent-filter>
         </activity>
         <activity android:name=".LocationMap"/>
+        <activity android:name=".OfflineDemo"/>
     </application>
 
 </manifest>

@@ -4,6 +4,9 @@ import android.app.Activity;
 import android.location.Location;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.View;
+import android.widget.Button;
+import android.widget.Toast;
 
 import com.baidu.location.BDLocation;
 import com.baidu.location.BDLocationListener;
@@ -29,18 +32,26 @@ import java.util.List;
  * Created by seven on 02/08/16.
  */
 
-public class LocationMap extends Activity {
+public class LocationMap extends Activity implements View.OnClickListener {
 
     private MapView mMapView = null;
     private BaiduMap mBaiduMap = null;
     public LocationClient mLocationClient = null;
     public BDLocationListener myListener = new MyLocationListener();
+    private LatLng oldLatLng = null;
+
+
+    private Button btn = null;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
         setContentView(R.layout.locationmap);
+
+        btn = (Button) findViewById(R.id.button);
+        btn.setOnClickListener(this);
+
         mMapView = (MapView) findViewById(R.id.bmapView);
         mBaiduMap = mMapView.getMap();
 
@@ -57,7 +68,7 @@ public class LocationMap extends Activity {
         option.setLocationMode(LocationClientOption.LocationMode.Hight_Accuracy
         );//可选，默认高精度，设置定位模式，高精度，低功耗，仅设备
         option.setCoorType("bd09ll");//可选，默认gcj02，设置返回的定位结果坐标系
-        int span=1000;
+        int span=0;
         option.setScanSpan(span);//可选，默认0，即仅定位一次，设置发起定位请求的间隔需要大于等于1000ms才是有效的
         option.setIsNeedAddress(true);//可选，设置是否需要地址信息，默认不需要
         option.setOpenGps(true);//可选，默认false,设置是否使用gps
@@ -68,6 +79,11 @@ public class LocationMap extends Activity {
         option.SetIgnoreCacheException(false);//可选，默认false，设置是否收集CRASH信息，默认收集
         option.setEnableSimulateGps(false);//可选，默认false，设置是否需要过滤gps仿真结果，默认需要
         mLocationClient.setLocOption(option);
+    }
+
+    @Override
+    public void onClick(View v) {
+        mLocationClient.requestLocation();
     }
 
     public class MyLocationListener implements BDLocationListener {
@@ -85,6 +101,7 @@ public class LocationMap extends Activity {
             sb.append("\nlontitude : ");
             sb.append(location.getLongitude());
             sb.append("\nradius : ");
+            Toast.makeText(getApplicationContext(),location.getLatitude()+"  "+location.getLongitude(),Toast.LENGTH_SHORT).show();
             sb.append(location.getRadius());
             if (location.getLocType() == BDLocation.TypeGpsLocation) {// GPS定位结果
                 sb.append("\nspeed : ");
@@ -134,17 +151,21 @@ public class LocationMap extends Activity {
             }
             Log.i("BaiduLocationApiDem", sb.toString());
 
+
            LatLng point = new LatLng(location.getLatitude(),location.getLongitude());
-            BitmapDescriptor bitmap = BitmapDescriptorFactory.
-                    fromResource(R.drawable.icon_marka);
-            OverlayOptions options = new MarkerOptions().
-                    position(point).icon(bitmap);
+            if(oldLatLng==null||(point.latitude!=oldLatLng.latitude||point.longitude!=oldLatLng.longitude)) {
+                BitmapDescriptor bitmap = BitmapDescriptorFactory.
+                        fromResource(R.drawable.icon_marka);
+                OverlayOptions options = new MarkerOptions().
+                        position(point).icon(bitmap);
 
-            mBaiduMap.addOverlay(options);
+                mBaiduMap.addOverlay(options);
 
-            MapStatusUpdate mapStatusUpdate = MapStatusUpdateFactory
-                    .newLatLngZoom(point,18);
-            mBaiduMap.setMapStatus(mapStatusUpdate);
+                MapStatusUpdate mapStatusUpdate = MapStatusUpdateFactory
+                        .newLatLngZoom(point, 18);
+                mBaiduMap.setMapStatus(mapStatusUpdate);
+                oldLatLng = point;
+            }
         }
     }
 }
