@@ -14,13 +14,14 @@ import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.widget.Button;
 
 import com.baidu.mapapi.SDKInitializer;
 
 public class MainActivity extends AppCompatActivity
         implements NavigationView.OnNavigationItemSelectedListener, View.OnClickListener {
 
-    private AppCompatImageButton btn_location  = null;
+    private Button btn_location  = null;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -49,7 +50,7 @@ public class MainActivity extends AppCompatActivity
         NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view);
         navigationView.setNavigationItemSelectedListener(this);
 
-        btn_location = (AppCompatImageButton) findViewById(R.id.location_btn);
+        btn_location = (Button) findViewById(R.id.location_btn);
         btn_location.setOnClickListener(this);
     }
 
