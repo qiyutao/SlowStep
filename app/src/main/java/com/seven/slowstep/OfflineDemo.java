@@ -31,6 +31,8 @@ public class OfflineDemo extends Activity implements MKOfflineMapListener {
     private TextView cidView;
     private TextView stateView;
     private EditText cityNameView;
+
+
     /**
      * 已下载的离线地图信息列表
      */
@@ -43,6 +45,7 @@ public class OfflineDemo extends Activity implements MKOfflineMapListener {
         mOffline = new MKOfflineMap();
         mOffline.init(this);
         initView();
+
 
     }
 

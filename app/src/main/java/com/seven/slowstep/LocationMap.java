@@ -1,11 +1,14 @@
 package com.seven.slowstep;
 
 import android.app.Activity;
+import android.content.Intent;
+import android.graphics.Color;
 import android.location.Location;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.baidu.location.BDLocation;
@@ -16,6 +19,7 @@ import com.baidu.location.Poi;
 import com.baidu.mapapi.map.BaiduMap;
 import com.baidu.mapapi.map.BitmapDescriptor;
 import com.baidu.mapapi.map.BitmapDescriptorFactory;
+import com.baidu.mapapi.map.DotOptions;
 import com.baidu.mapapi.map.MapStatus;
 import com.baidu.mapapi.map.MapStatusUpdate;
 import com.baidu.mapapi.map.MapStatusUpdateFactory;
@@ -24,8 +28,12 @@ import com.baidu.mapapi.map.MarkerOptions;
 import com.baidu.mapapi.map.MyLocationConfiguration;
 import com.baidu.mapapi.map.MyLocationData;
 import com.baidu.mapapi.map.OverlayOptions;
+import com.baidu.mapapi.map.PolylineOptions;
+import com.baidu.mapapi.map.Stroke;
 import com.baidu.mapapi.model.LatLng;
+import com.baidu.mapapi.utils.DistanceUtil;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -39,9 +47,10 @@ public class LocationMap extends Activity implements View.OnClickListener {
     public LocationClient mLocationClient = null;
     public BDLocationListener myListener = new MyLocationListener();
     private LatLng oldLatLng = null;
-
+    private boolean isLocation;
 
     private Button btn = null;
+    private TextView tv_showDist = null;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -57,6 +66,17 @@ public class LocationMap extends Activity implements View.OnClickListener {
 
         mLocationClient = new LocationClient(getApplicationContext());     //声明LocationClient类
         mLocationClient.registerLocationListener( myListener );    //注册监听函数
+
+        tv_showDist = (TextView) findViewById(R.id.tv_showdist);
+
+        Intent intent = getIntent();
+        isLocation = intent.getBooleanExtra("location",true);
+
+        if(isLocation) {
+            tv_showDist.setVisibility(View.GONE);
+        } else {
+            btn.setVisibility(View.GONE);
+        }
 
         initLocation();
 
@@ -75,9 +95,9 @@ public class LocationMap extends Activity implements View.OnClickListener {
         option.setLocationNotify(true);//可选，默认false，设置是否当gps有效时按照1S1次频率输出GPS结果
         option.setIsNeedLocationDescribe(true);//可选，默认false，设置是否需要位置语义化结果，可以在BDLocation.getLocationDescribe里得到，结果类似于“在北京天安门附近”
         option.setIsNeedLocationPoiList(true);//可选，默认false，设置是否需要POI结果，可以在BDLocation.getPoiList里得到
-        option.setIgnoreKillProcess(false);//可选，默认true，定位SDK内部是一个SERVICE，并放到了独立进程，设置是否在stop的时候杀死这个进程，默认不杀死
+        option.setIgnoreKillProcess(true);//可选，默认true，定位SDK内部是一个SERVICE，并放到了独立进程，设置是否在stop的时候杀死这个进程，默认不杀死
         option.SetIgnoreCacheException(false);//可选，默认false，设置是否收集CRASH信息，默认收集
-        option.setEnableSimulateGps(false);//可选，默认false，设置是否需要过滤gps仿真结果，默认需要
+        option.setEnableSimulateGps(true);//可选，默认false，设置是否需要过滤gps仿真结果，默认需要
         mLocationClient.setLocOption(option);
     }
 
@@ -101,7 +121,8 @@ public class LocationMap extends Activity implements View.OnClickListener {
             sb.append("\nlontitude : ");
             sb.append(location.getLongitude());
             sb.append("\nradius : ");
-            Toast.makeText(getApplicationContext(),location.getLatitude()+"  "+location.getLongitude(),Toast.LENGTH_SHORT).show();
+            if(isLocation)
+                Toast.makeText(getApplicationContext(),location.getLatitude()+"  "+location.getLongitude(),Toast.LENGTH_SHORT).show();
             sb.append(location.getRadius());
             if (location.getLocType() == BDLocation.TypeGpsLocation) {// GPS定位结果
                 sb.append("\nspeed : ");
@@ -153,7 +174,7 @@ public class LocationMap extends Activity implements View.OnClickListener {
 
 
            LatLng point = new LatLng(location.getLatitude(),location.getLongitude());
-            if(oldLatLng==null||(point.latitude!=oldLatLng.latitude||point.longitude!=oldLatLng.longitude)) {
+            if(isLocation&&(oldLatLng==null||(point.latitude!=oldLatLng.latitude||point.longitude!=oldLatLng.longitude))) {
                 BitmapDescriptor bitmap = BitmapDescriptorFactory.
                         fromResource(R.drawable.icon_marka);
                 OverlayOptions options = new MarkerOptions().
@@ -164,6 +185,26 @@ public class LocationMap extends Activity implements View.OnClickListener {
                 MapStatusUpdate mapStatusUpdate = MapStatusUpdateFactory
                         .newLatLngZoom(point, 18);
                 mBaiduMap.setMapStatus(mapStatusUpdate);
+                oldLatLng = point;
+            }
+
+            if(!isLocation) {
+                OverlayOptions options = new DotOptions().center(point)
+                        .color(Color.argb(77,255,00,00)).radius(10).visible(true);
+                mBaiduMap.addOverlay(options);
+
+                MapStatusUpdate mapStatusUpdate = MapStatusUpdateFactory
+                        .newLatLngZoom(point, 18);
+                mBaiduMap.setMapStatus(mapStatusUpdate);
+                if(oldLatLng==null)
+                    tv_showDist.setText("0米");
+                else {
+                    double now = DistanceUtil.getDistance(oldLatLng, point);
+                    String text = tv_showDist.getText().toString();
+                    String[] dis = text.split("米");
+                    double old = Double.parseDouble(dis[0]);
+                    tv_showDist.setText((now+old)+"米");
+                }
                 oldLatLng = point;
             }
         }

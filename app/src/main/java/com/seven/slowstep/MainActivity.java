@@ -22,6 +22,7 @@ public class MainActivity extends AppCompatActivity
         implements NavigationView.OnNavigationItemSelectedListener, View.OnClickListener {
 
     private Button btn_location  = null;
+    private Button btn_dis  = null;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -59,6 +60,8 @@ public class MainActivity extends AppCompatActivity
 
         btn_location = (Button) findViewById(R.id.location_btn);
         btn_location.setOnClickListener(this);
+        btn_dis = (Button) findViewById(R.id.dis_btn);
+        btn_dis.setOnClickListener(this);
     }
 
     @Override
@@ -121,9 +124,12 @@ public class MainActivity extends AppCompatActivity
     @Override
     public void onClick(View v) {
 
-        System.out.println("sfsdfdf");
-
-        Intent intent = new Intent(this,LocationMap.class);
+        Intent intent = new Intent();
+        if(v.getId()==R.id.location_btn)
+            intent.putExtra("location",true);
+        else
+            intent.putExtra("location",false);
+        intent.setClass(this,LocationMap.class);
         startActivity(intent);
     }
 }
